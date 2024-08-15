@@ -19,6 +19,8 @@ def run_macro():
         if not macro_running:
             print("Macro stopped.")
             break  # Stop the loop if macro_running is False
+        if macro_running:
+            print("run ", index,"macro bool = ",macro_running)
 
         # Simulate the action
         action_name = row["Action Name"]
