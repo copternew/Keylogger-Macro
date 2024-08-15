@@ -1,14 +1,11 @@
 import time
 import pandas as pd
+import pydirectinput
 from pynput import keyboard
-from pynput.keyboard import Controller
 import threading
 
 # Load the recorded actions from the CSV file
 df = pd.read_csv("keylog.csv")
-
-# Initialize the keyboard controller to simulate key presses
-kb = Controller()
 
 # Global flag to control the macro execution
 macro_running = False
@@ -31,14 +28,16 @@ def run_macro():
         # Simulate typing the key
         try:
             if len(action_name) == 1:  # Regular character
-                kb.press(action_name)
-                kb.release(action_name)
-            else:  # Special keys (e.g., 'Key.enter')
-                key = getattr(keyboard.Key, action_name.split(".")[1])
-                kb.press(key)
-                kb.release(key)
-        except AttributeError:
-            print(f"Unknown key: {action_name}")
+                pydirectinput.press(action_name)
+            else:  # Special keys (e.g., 'enter', 'tab')
+                if action_name == 'Key.enter':
+                    pydirectinput.press('enter')
+                elif action_name == 'Key.tab':
+                    pydirectinput.press('tab')
+                # Add more special keys as needed
+            print(f"Executed: {action_name}")
+        except Exception as e:
+            print(f"Failed to execute key: {action_name} with error {e}")
 
         # Wait for the specified delay before the next action
         time.sleep(delay)

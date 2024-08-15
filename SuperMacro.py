@@ -1,14 +1,24 @@
 import time
 import pandas as pd
+import ctypes
 from pynput import keyboard
-from pynput.keyboard import Controller
 import threading
+
+# Virtual Key Codes
+VK_CODES = {
+    'enter': 0x0D,
+    'tab': 0x09,
+    # Add more special keys as needed
+}
+
+def press_key(hex_key_code):
+    """ Simulate a key press using ctypes """
+    ctypes.windll.user32.keybd_event(hex_key_code, 0, 0, 0)  # Key down
+    time.sleep(0.05)  # Small delay to simulate real key press
+    ctypes.windll.user32.keybd_event(hex_key_code, 0, 2, 0)  # Key up
 
 # Load the recorded actions from the CSV file
 df = pd.read_csv("keylog.csv")
-
-# Initialize the keyboard controller to simulate key presses
-kb = Controller()
 
 # Global flag to control the macro execution
 macro_running = False
@@ -31,14 +41,20 @@ def run_macro():
         # Simulate typing the key
         try:
             if len(action_name) == 1:  # Regular character
-                kb.press(action_name)
-                kb.release(action_name)
-            else:  # Special keys (e.g., 'Key.enter')
-                key = getattr(keyboard.Key, action_name.split(".")[1])
-                kb.press(key)
-                kb.release(key)
-        except AttributeError:
-            print(f"Unknown key: {action_name}")
+                hex_key_code = ord(action_name.upper())
+                press_key(hex_key_code)
+            else:  # Special keys
+                if action_name == 'Key.enter':
+                    hex_key_code = VK_CODES['enter']
+                elif action_name == 'Key.tab':
+                    hex_key_code = VK_CODES['tab']
+                else:
+                    # Add more special keys as needed
+                    continue
+                press_key(hex_key_code)
+            print(f"Executed: {action_name}")
+        except Exception as e:
+            print(f"Failed to execute key: {action_name} with error {e}")
 
         # Wait for the specified delay before the next action
         time.sleep(delay)
